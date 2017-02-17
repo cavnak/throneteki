@@ -2,14 +2,17 @@ const DrawCard = require('../../../drawcard.js');
 
 class LadyInWaiting extends DrawCard {
     setupCardAbilities() {
-        this.action({
-            title: 'Marshal Lady-In-Waiting as a duplicate on a lady at no cost',
-            method: 'marshalAsDupe',
-            canPlayFrom: 'hand'
+        this.reaction({
+            when: {
+                onCardEntersPlay: (event, card) => card === this && this.game.currentPhase === 'marshal' && this.controller.gold >= 2
+            },
+            handler: () => {
+                this.marshalAsDupe();
+            }
         });
     }
     marshalAsDupe() {
-        this.game.promptForSelect(this.controller, {
+        this.controller.game.promptForSelect(this.controller, {
             activePromptTitle: 'Select a character',
             waitingPromptTitle: 'Waiting for opponent to use ' + this.name,
             cardCondition: card => card.location === 'play area' && card.getType() === 'character' && card.hasTrait('Lady'),
@@ -20,6 +23,7 @@ class LadyInWaiting extends DrawCard {
     onCardSelected(player, card) {
         this.controller.removeCardFromPile(this);
         card.addDuplicate(this);
+        this.controller.gold +=2;
         this.game.addMessage('{0} places {1} on {2} as a duplicate', this.controller, this, card);
         return true;
     }
